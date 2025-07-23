@@ -188,7 +188,7 @@ def run_neat(config_path, gens):
         # After each generation, visualize the best genome
         best = max(genomes, key=lambda g: g[1].fitness)[1]
         best_net = neat.nn.FeedForwardNetwork.create(best, config)
-        thread = threading.Thread(target=visualize_game, args=(best_net, 1, False, 200), daemon=True)
+        thread = threading.Thread(target=visualize_game, args=(best_net, 1, False, 500), daemon=True)
         thread.start()
 
     winner = p.run(eval_with_visualization, gens)
