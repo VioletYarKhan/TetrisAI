@@ -5,6 +5,7 @@ import random
 import os
 import pickle
 from multiprocessing import Pool, cpu_count
+import threading
 
 import pygame
 
@@ -41,6 +42,55 @@ TETROMINOES = {
           [[1, 1, 1], [1, 0, 0]],
           [[1, 1], [0, 1], [0, 1]]]
 }
+
+import time
+import datetime
+from neat.reporting import BaseReporter
+
+class CompletionTimeReporter(BaseReporter):
+    def __init__(self, num_generations):
+        super().__init__()
+        self.num_generations = num_generations
+        self.generation_start_time = None
+        self.generation_times = []
+        self.current_generation = 0
+
+    def start_generation(self, generation):
+        self.current_generation = generation  # NEAT passes this in correctly
+        self.generation_start_time = time.time()
+
+    def end_generation(self, config, population, species_set):  # MUST match NEAT's signature
+        if self.generation_start_time is not None:
+            elapsed = time.time() - self.generation_start_time
+            self.generation_times.append(elapsed)
+
+            # Limit how many generations to consider for averaging
+            self.generation_times = self.generation_times[-10:]
+
+            if self.generation_times:
+                average_generation_time = sum(self.generation_times) / len(self.generation_times)
+                generations_remaining = self.num_generations - self.current_generation
+                estimated_remaining_time_seconds = average_generation_time * generations_remaining
+                eta = datetime.timedelta(seconds=int(estimated_remaining_time_seconds))
+                elapsed = datetime.timedelta(seconds=int(sum(self.generation_times)))
+
+                print(f"Generation {self.current_generation}/{self.num_generations} complete. "
+                      f"Elapsed: {elapsed} | ETA: {eta}")
+
+
+class SevenBag:
+    def __init__(self):
+        self.bag = []
+        self.refill_bag()
+
+    def refill_bag(self):
+        self.bag = list(TETROMINOES.keys())
+        random.shuffle(self.bag)
+
+    def next(self):
+        if not self.bag:
+            self.refill_bag()
+        return self.bag.pop()
 
 def create_board():
     return np.zeros((BOARD_HEIGHT, BOARD_WIDTH), dtype=int)
@@ -99,12 +149,13 @@ def get_best_move(board, piece, net):
                     best_action = (rotation, col)
     return best_action
 
-def play_game(net, max_steps=50):
+def play_game(net, max_steps=math.inf):
     board = create_board()
     score = 0
     steps = 0
+    bag = SevenBag()
     while steps < max_steps:
-        piece = random.choice(list(TETROMINOES.keys()))
+        piece = bag.next()
         action = get_best_move(board, piece, net)
         if action is None:
             break  # Game over
@@ -113,33 +164,41 @@ def play_game(net, max_steps=50):
         if success == -1:
             break # Game over
         score += 1
-        score += pow(success, 2)*10
+        score += pow(success, 4)*10
         steps += 1
     return score
 
 def eval_genomes(genomes, config):
     for genome_id, genome in genomes:
         net = neat.nn.FeedForwardNetwork.create(genome, config)
-        score = play_game(net)
+        score = play_game(net, 500)
         genome.fitness = score
 
-def run_neat(config_path):
+def run_neat(config_path, gens):
     config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
                          neat.DefaultSpeciesSet, neat.DefaultStagnation,
                          config_path)
     p = neat.Population(config)
     p.add_reporter(neat.StdOutReporter(True))
-    stats = neat.StatisticsReporter()
-    p.add_reporter(stats)
+    p.add_reporter(neat.StatisticsReporter())
+    p.add_reporter(CompletionTimeReporter(gens))
 
-    winner = p.run(eval_genomes, 100)
+    def eval_with_visualization(genomes, config):
+        eval_genomes(genomes, config)
+        # After each generation, visualize the best genome
+        best = max(genomes, key=lambda g: g[1].fitness)[1]
+        best_net = neat.nn.FeedForwardNetwork.create(best, config)
+        thread = threading.Thread(target=visualize_game, args=(best_net, 1, False, 200), daemon=True)
+        thread.start()
+
+    winner = p.run(eval_with_visualization, gens)
 
     with open("best_tetris_genome.pkl", "wb") as f:
         pickle.dump(winner, f)
     print("✅ Best Tetris genome saved.")
 
     best_net = neat.nn.FeedForwardNetwork.create(winner, config)
-    visualize_game(best_net)
+    visualize_game(best_net, end=True)
 
 def draw_board(screen, board):
     screen.fill(BLACK)
@@ -153,7 +212,7 @@ def draw_board(screen, board):
             )
     pygame.display.flip()
 
-def visualize_game(net, delay=100):
+def visualize_game(net, delay=100, end=False, max_steps = math.inf):
     pygame.init()
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     pygame.display.set_caption("NEAT Tetris AI")
@@ -161,10 +220,12 @@ def visualize_game(net, delay=100):
     board = create_board()
     score = 0
     clock = pygame.time.Clock()
-
+    steps = 0
+    
     running = True
+    bag = SevenBag()
     while running:
-        piece = random.choice(list(TETROMINOES.keys()))
+        piece = bag.next()
         action = get_best_move(board, piece, net)
         if action is None:
             running = False
@@ -177,7 +238,8 @@ def visualize_game(net, delay=100):
             continue
 
         score += 1
-        score += pow(success, 2)*10
+        score += pow(success, 4)*10
+        steps += 1
 
         draw_board(screen, board)
         pygame.time.delay(delay)
@@ -185,11 +247,15 @@ def visualize_game(net, delay=100):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-
-    print("🎮 Game Over! Final score:", score)
+        if (steps > max_steps):
+            running = False
+        with open("best_tetris_genome.pkl", "wb") as f:
+            pickle.dump(net, f)
+    if (end):
+        print("🎮 Game Over! Final score:", score)
     pygame.quit()
 
 if __name__ == "__main__":
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, "neat-config.txt")
-    run_neat(config_path)
+    run_neat(config_path, 100)

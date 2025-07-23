@@ -99,7 +99,7 @@ def get_best_move(board, piece, net):
                     best_action = (rotation, col)
     return best_action
 
-def play_game(net, max_steps=500):
+def play_game(net, max_steps=math.inf):
     board = create_board()
     score = 0
     steps = 0
