@@ -218,7 +218,7 @@ def save_genome(genome):
         pickle.dump(genome, f)
 
 if __name__ == "__main__":
-    print("Starting...", flush=True)
+    print(f"Starting... CPUS: {cpu_count()}", flush=True)
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, "neat-config.txt")
     run_neat(config_path, 100)
