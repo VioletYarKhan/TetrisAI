@@ -174,8 +174,10 @@ def play_game(net, max_steps=math.inf):
 def eval_genomes(genomes, config):
     for genome_id, genome in genomes:
         net = neat.nn.FeedForwardNetwork.create(genome, config)
-        score = play_game(net, 1000)
-        genome.fitness = score
+        scores = []
+        for i in range(10):
+            scores.append(play_game(net, 1000))
+        genome.fitness = sum(scores)/len(scores)
 
 def run_neat(config_path, gens):
     config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
@@ -207,4 +209,4 @@ if __name__ == "__main__":
     print("Starting...", flush=True)
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, "neat-config.txt")
-    run_neat(config_path, 200)
+    run_neat(config_path, 100)

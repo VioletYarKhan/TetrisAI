@@ -192,8 +192,8 @@ def run_neat(config_path, gens):
         eval_genomes(genomes, config)
         best = max(genomes, key=lambda g: g[1].fitness)[1]
         best_net = neat.nn.FeedForwardNetwork.create(best, config)
-        # thread = threading.Thread(target=visualize_game, args=(best_net, 1, False, 500), daemon=True)
-        thread = threading.Thread(target=save_genome, args=(best,), daemon=True)
+        thread = threading.Thread(target=visualize_game, args=(best_net, 1, False, 500), daemon=True)
+        # thread = threading.Thread(target=save_genome, args=(best,), daemon=True)
         thread.start()
 
     winner = p.run(eval_with_visualization, gens)
@@ -265,4 +265,4 @@ def save_genome(genome):
 if __name__ == "__main__":
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, "neat-config.txt")
-    run_neat(config_path, 200)
+    run_neat(config_path, 100)
