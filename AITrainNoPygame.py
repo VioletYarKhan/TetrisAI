@@ -58,6 +58,7 @@ class CompletionTimeReporter(BaseReporter):
         self.num_generations = num_generations
         self.generation_start_time = None
         self.generation_times = []
+        self.allgeneration_times = []
         self.current_generation = 0
 
     def start_generation(self, generation):
