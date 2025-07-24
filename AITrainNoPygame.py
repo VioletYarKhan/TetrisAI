@@ -213,7 +213,7 @@ def run_neat(config_path, gens):
     print("✅ Best Tetris genome saved.")
 
 def save_genome(genome):
-    with open("curr_tetris_genome.pkl", "wb") as f:
+    with open("fast_tetris_genome.pkl", "wb") as f:
         pickle.dump(genome, f)
 
 if __name__ == "__main__":
