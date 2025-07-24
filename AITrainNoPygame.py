@@ -6,6 +6,7 @@ import os
 import pickle
 import time
 import datetime
+from multiprocessing import Pool, cpu_count
 from neat.reporting import BaseReporter
 
 # Game constants
@@ -78,7 +79,6 @@ class CompletionTimeReporter(BaseReporter):
                 elapsed_total = datetime.timedelta(seconds=int(sum(self.allgeneration_times)))
                 print(f"Generation {self.current_generation}/{self.num_generations} complete. "
                       f"Elapsed: {elapsed_total} | ETA: {eta}")
-
 
 # Seven-bag randomizer
 class SevenBag:
@@ -174,13 +174,22 @@ def play_game(net, max_steps=math.inf):
         steps += 1
     return score
 
+# Multiprocessing version of genome evaluation
+def eval_genome(args):
+    genome_id, genome, config = args
+    net = neat.nn.FeedForwardNetwork.create(genome, config)
+    scores = [play_game(net, 1000) for _ in range(10)]
+    genome.fitness = sum(scores) / len(scores)
+    return genome_id, genome
+
 def eval_genomes(genomes, config):
-    for genome_id, genome in genomes:
-        net = neat.nn.FeedForwardNetwork.create(genome, config)
-        scores = []
-        for i in range(10):
-            scores.append(play_game(net, 1000))
-        genome.fitness = sum(scores)/len(scores)
+    with Pool(cpu_count()) as pool:
+        args = [(genome_id, genome, config) for genome_id, genome in genomes]
+        results = pool.map(eval_genome, args)
+
+    id_to_genome = dict(genomes)
+    for genome_id, genome in results:
+        id_to_genome[genome_id].fitness = genome.fitness
 
 def run_neat(config_path, gens):
     config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
@@ -203,7 +212,7 @@ def run_neat(config_path, gens):
     with open("best_tetris_genome.pkl", "wb") as f:
         pickle.dump(winner, f)
     print("✅ Best Tetris genome saved.")
-    
+
 def save_genome(genome):
     with open("curr_tetris_genome.pkl", "wb") as f:
         pickle.dump(genome, f)
