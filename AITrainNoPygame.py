@@ -175,7 +175,7 @@ def eval_genomes(genomes, config):
     for genome_id, genome in genomes:
         net = neat.nn.FeedForwardNetwork.create(genome, config)
         scores = []
-        for i in range(10):
+        for i in range(5):
             scores.append(play_game(net, 1000))
         genome.fitness = sum(scores)/len(scores)
 
