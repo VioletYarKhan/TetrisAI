@@ -169,7 +169,7 @@ def play_game(net, max_steps=math.inf):
         score += 1
         score += pow(success, 4)*10
         steps += 1
-    return score
+    return score/steps
 
 def eval_genomes(genomes, config):
     for genome_id, genome in genomes:
