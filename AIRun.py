@@ -150,7 +150,6 @@ def visualize_game(net, delay=100, max_steps=math.inf):
         #     pygame.time.delay(lines*2*delay)
         if (lines != 0):
             totalLines[lines] += 1
-        score += 1
         score += pow(lines, 4)*10
         steps += 1
         draw_board(screen, board)
@@ -161,7 +160,7 @@ def visualize_game(net, delay=100, max_steps=math.inf):
         if steps > max_steps:
             running = False
 
-    print(f"🎮 Game Over! Final score: {score} Steps: {steps} Lines: {totalLines}")
+    print(f"🎮 Game Over! Final score: {(score/steps) + steps} Steps: {steps} Lines: {totalLines}")
     pygame.quit()
 
 if __name__ == "__main__":
