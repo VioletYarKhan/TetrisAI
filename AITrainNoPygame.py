@@ -169,10 +169,9 @@ def play_game(net, max_steps=math.inf):
         success = place_piece(board, shape, col, piece)
         if success == -1:
             break
-        score += 1
         score += pow(success, 4)*10
         steps += 1
-    return score/steps
+    return (score/steps) + steps
 
 # Multiprocessing version of genome evaluation
 def eval_genome(args):
