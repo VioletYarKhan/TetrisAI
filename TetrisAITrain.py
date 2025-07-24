@@ -259,7 +259,7 @@ def visualize_game(net, delay=100, end=False, max_steps=math.inf):
     pygame.quit()
 
 def save_genome(genome):
-    with open("best_tetris_genome.pkl", "wb") as f:
+    with open("curr_tetris_genome.pkl", "wb") as f:
         pickle.dump(genome, f)
 
 if __name__ == "__main__":

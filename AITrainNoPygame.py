@@ -4,7 +4,6 @@ import neat
 import random
 import os
 import pickle
-import threading
 import time
 import datetime
 from neat.reporting import BaseReporter
@@ -199,7 +198,7 @@ def run_neat(config_path, gens):
     print("✅ Best Tetris genome saved.")
     
 def save_genome(genome):
-    with open("best_tetris_genome.pkl", "wb") as f:
+    with open("curr_tetris_genome.pkl", "wb") as f:
         pickle.dump(genome, f)
 
 if __name__ == "__main__":
