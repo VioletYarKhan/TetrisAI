@@ -187,15 +187,12 @@ def run_neat(config_path, gens):
     p.add_reporter(neat.StatisticsReporter())
     p.add_reporter(CompletionTimeReporter(gens))
 
-    def eval_with_visualization(genomes, config):
+    def eval_save(genomes, config):
         eval_genomes(genomes, config)
         best = max(genomes, key=lambda g: g[1].fitness)[1]
-        best_net = neat.nn.FeedForwardNetwork.create(best, config)
-        # thread = threading.Thread(target=visualize_game, args=(best_net, 1, False, 500), daemon=True)
-        thread = threading.Thread(target=save_genome, args=(best,), daemon=True)
-        thread.start()
+        save_genome(best)
 
-    winner = p.run(eval_with_visualization, gens)
+    winner = p.run(eval_save, gens)
 
     with open("best_tetris_genome.pkl", "wb") as f:
         pickle.dump(winner, f)
@@ -206,6 +203,7 @@ def save_genome(genome):
         pickle.dump(genome, f)
 
 if __name__ == "__main__":
+    print("Starting...", flush=True)
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, "neat-config.txt")
     run_neat(config_path, 200)
