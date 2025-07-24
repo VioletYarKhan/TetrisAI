@@ -67,15 +67,17 @@ class CompletionTimeReporter(BaseReporter):
     def end_generation(self, config, population, species_set):
         if self.generation_start_time is not None:
             elapsed = time.time() - self.generation_start_time
+            self.allgeneration_times.append(elapsed)
             self.generation_times.append(elapsed)
             self.generation_times = self.generation_times[-10:]
             if self.generation_times:
                 avg = sum(self.generation_times) / len(self.generation_times)
                 remaining = self.num_generations - self.current_generation
                 eta = datetime.timedelta(seconds=int(avg * remaining))
-                elapsed_total = datetime.timedelta(seconds=int(sum(self.generation_times)))
+                elapsed_total = datetime.timedelta(seconds=int(sum(self.allgeneration_times)))
                 print(f"Generation {self.current_generation}/{self.num_generations} complete. "
                       f"Elapsed: {elapsed_total} | ETA: {eta}")
+
 
 # Seven-bag randomizer
 class SevenBag:
