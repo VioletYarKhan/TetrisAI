@@ -178,7 +178,7 @@ def play_game(net, max_steps=math.inf):
 def eval_genome(args):
     genome_id, genome, config = args
     net = neat.nn.FeedForwardNetwork.create(genome, config)
-    scores = [play_game(net, 1000) for _ in range(10)]
+    scores = [play_game(net, 1000) for _ in range(5)]
     genome.fitness = sum(scores) / len(scores)
     return genome_id, genome
 
