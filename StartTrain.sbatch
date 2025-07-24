@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=75PopEvolution
+#SBATCH --job-name=100PopEvolution
 #SBATCH --output=TAI_%j.out
 #SBATCH --error=TAI_%j.err
 #SBATCH --ntasks=1
