@@ -69,6 +69,8 @@ class CompletionTimeReporter(BaseReporter):
             elapsed = time.time() - self.generation_start_time
             self.generation_times.append(elapsed)
             self.generation_times = self.generation_times[-10:]
+            if (self.current_generation % 5 == 0):
+                print("Saving Genome...")
             if self.generation_times:
                 avg = sum(self.generation_times) / len(self.generation_times)
                 remaining = self.num_generations - self.current_generation
@@ -188,8 +190,9 @@ def run_neat(config_path, gens):
 
     def eval_save(genomes, config):
         eval_genomes(genomes, config)
-        best = max(genomes, key=lambda g: g[1].fitness)[1]
-        save_genome(best)
+        if (p.generation % 5 == 0):
+            best = max(genomes, key=lambda g: g[1].fitness)[1]
+            save_genome(best)
 
     winner = p.run(eval_save, gens)
 
