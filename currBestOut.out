@@ -1,0 +1,15 @@
+ ****** Running generation 149 ******
+
+Population's average fitness: 39044.54375 stdev: 72272.69416
+Best fitness: 290130.00000 - size: (14, 18) - species 129 - id 21578
+Average adjusted fitness: 0.135
+Mean genetic distance 2.726, standard deviation 0.754
+Population of 128 members in 2 species:
+   ID   age  size  fitness  adj fit  stag
+  ====  ===  ====  =======  =======  ====
+   129   48    63  38102.4    0.131     6
+   130   25    65  39986.7    0.138     4
+Total extinctions: 0
+Generation time: 287.323 sec (320.265 average)
+Generation 149/150 complete. Elapsed: 8:52:15 | ETA: 0:05:20
+✅ Best Tetris genome saved.

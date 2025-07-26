@@ -4,15 +4,32 @@ import pickle
 import pygame
 import os
 import neat
+import visualize  # ensure this is in your directory
 from collections import Counter
 
+node_names = {
+    -1: "height_0",
+    -2: "height_1",
+    -3: "height_2",
+    -4: "height_3",
+    -5: "height_4",
+    -6: "height_5",
+    -7: "height_6",
+    -8: "height_7",
+    -9: "height_8",
+    -10: "height_9",
+    -11: "holes",
+    -12: "bumpiness",
+    -13: "avg_height",
+    0: "move_score"
+}
 
-# Constants
 BOARD_WIDTH = 10
 BOARD_HEIGHT = 20
 CELL_SIZE = 30
 MARGIN = 2
-SCREEN_WIDTH = BOARD_WIDTH * (CELL_SIZE + MARGIN)
+STATS_WIDTH = 300
+SCREEN_WIDTH = BOARD_WIDTH * (CELL_SIZE + MARGIN) + STATS_WIDTH
 SCREEN_HEIGHT = BOARD_HEIGHT * (CELL_SIZE + MARGIN)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -73,7 +90,7 @@ def place_piece(board, shape, col, piece):
         for c in range(shape.shape[1]):
             if shape[r][c]:
                 board[row + r][col + c] = piece
-    return 0
+    return clear_lines(board)
 
 def clear_lines(board):
     full_rows = np.where(np.all(board != 0, axis=1))[0]
@@ -101,7 +118,6 @@ def get_best_move(board, piece, net):
             test_board = board.copy()
             if not check_collision(test_board, shape, 0, col):
                 success = place_piece(test_board, shape, col, piece)
-                lines = clear_lines(board)
                 if success == -1:
                     continue
                 features = get_features(test_board)
@@ -112,7 +128,6 @@ def get_best_move(board, piece, net):
     return best_action
 
 def draw_board(screen, board):
-    screen.fill(BLACK)
     for r in range(BOARD_HEIGHT):
         for c in range(BOARD_WIDTH):
             cell = board[r][c]
@@ -122,16 +137,30 @@ def draw_board(screen, board):
                 color,
                 (c * (CELL_SIZE + MARGIN), r * (CELL_SIZE + MARGIN), CELL_SIZE, CELL_SIZE)
             )
-    pygame.display.flip()
+
+def draw_stats(screen, font, score, steps, total_lines):
+    base_x = BOARD_WIDTH * (CELL_SIZE + MARGIN) + 10
+    lines = [
+        f"Score: {score}",
+        f"Pieces: {steps}",
+        f"Lines: {sum(k * v for k, v in total_lines.items())}",
+        "Breakdown:" 
+    ] + [f"{k}L: {v}" for k, v in sorted(total_lines.items())]
+
+    for i, line in enumerate(lines):
+        text = font.render(line, True, WHITE)
+        screen.blit(text, (base_x, 20 + i * 25))
 
 def visualize_game(net, delay=100, max_steps=math.inf):
     pygame.init()
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-    pygame.display.set_caption("Tetris NEAT AI (Best Genome)")
+    pygame.display.set_caption("Tetris NEAT AI (Best Genome) + NN Visualization")
+    font = pygame.font.SysFont("consolas", 20)
+
     board = create_board()
     score = 0
     steps = 0
-    totalLines = Counter()
+    total_lines = Counter()
     bag = SevenBag()
     running = True
 
@@ -142,31 +171,34 @@ def visualize_game(net, delay=100, max_steps=math.inf):
             break
         shape, col = action
         success = place_piece(board, shape, col, piece)
-        draw_board(screen, board)
-        lines = clear_lines(board)
         if success == -1:
             break
-        # if (lines > 0):
-        #     pygame.time.delay(lines*2*delay)
-        if (lines != 0):
-            totalLines[lines] += 1
+        lines = success
         score += 1
-        score += pow(lines, 4)*10
+        score += pow(lines, 4) * 10
+        if lines != 0:
+            total_lines[lines] += 1
         steps += 1
+
+        screen.fill(BLACK)
         draw_board(screen, board)
-        pygame.time.delay(delay)
+        draw_stats(screen, font, score, steps, total_lines)
+        pygame.display.flip()
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+
+        pygame.time.delay(delay)
+
         if steps > max_steps:
             running = False
 
-    print(f"🎮 Game Over! Final score: {score} Steps: {steps} Lines: {totalLines}")
+    print(f"\n🎮 Game Over! Final score: {score} Steps: {steps} Lines: {total_lines}")
     pygame.quit()
 
 if __name__ == "__main__":
-    
-    with open("curr_tetris_genome.pkl", "rb") as f:
+    with open("best_tetris_genome.pkl", "rb") as f:
         genome = pickle.load(f)
 
     config_path = os.path.join(os.path.dirname(__file__), "neat-config.txt")
@@ -175,5 +207,7 @@ if __name__ == "__main__":
                          config_path)
 
     net = neat.nn.FeedForwardNetwork.create(genome, config)
-    for i in range(10):
+    visualize.draw_net(config, genome, view=True, node_names=node_names)
+
+    for i in range(5):
         visualize_game(net, delay=0)

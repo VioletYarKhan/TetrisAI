@@ -8,6 +8,9 @@ import time
 import datetime
 from multiprocessing import Pool, cpu_count
 from neat.reporting import BaseReporter
+import sys
+
+sys.stdout = open('out.txt', 'a', buffering=1)
 
 # Game constants
 BOARD_WIDTH = 10
@@ -183,7 +186,7 @@ def eval_genome(args):
     return genome_id, genome
 
 def eval_genomes(genomes, config):
-    with Pool(cpu_count()) as pool:
+    with Pool(cpu_count()//12) as pool:
         args = [(genome_id, genome, config) for genome_id, genome in genomes]
         results = pool.map(eval_genome, args)
 
@@ -206,19 +209,23 @@ def run_neat(config_path, gens):
             print("Saving Genome...")
             best = max(genomes, key=lambda g: g[1].fitness)[1]
             save_genome(best)
+        sys.stdout.flush()
 
     winner = p.run(eval_save, gens)
 
     with open("best_tetris_genome.pkl", "wb") as f:
         pickle.dump(winner, f)
-    print("✅ Best Tetris genome saved.")
+    print("Best Tetris genome saved.")
 
 def save_genome(genome):
     with open("curr_tetris_genome.pkl", "wb") as f:
         pickle.dump(genome, f)
 
 if __name__ == "__main__":
-    print(f"Starting... CPUS: {cpu_count()}", flush=True)
+    sys.stdout.flush()
+    print(f"Starting... CPUS: {cpu_count()//12}", flush=True)
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, "neat-config.txt")
     run_neat(config_path, 100)
+    sys.stdout.close()
+
