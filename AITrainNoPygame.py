@@ -181,7 +181,7 @@ def play_game(net, max_steps=math.inf):
 def eval_genome(args):
     genome_id, genome, config = args
     net = neat.nn.FeedForwardNetwork.create(genome, config)
-    scores = [play_game(net, 1000) for _ in range(5)]
+    scores = [play_game(net, 5000) for _ in range(5)]
     genome.fitness = sum(scores) / len(scores)
     return genome_id, genome
 
@@ -201,7 +201,7 @@ def run_neat(config_path, gens):
     p = neat.Population(config)
     p.add_reporter(neat.StdOutReporter(True))
     p.add_reporter(neat.StatisticsReporter())
-    p.add_reporter(CompletionTimeReporter(gens))
+    p.add_reporter(CompletionTimeReporter(num_generations=gens))
 
     def eval_save(genomes, config):
         eval_genomes(genomes, config)
@@ -226,6 +226,6 @@ if __name__ == "__main__":
     print(f"Starting... CPUS: {cpu_count()//12}", flush=True)
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, "neat-config.txt")
-    run_neat(config_path, 100)
+    run_neat(config_path, 1000)
     sys.stdout.close()
 

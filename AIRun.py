@@ -7,6 +7,8 @@ import neat
 import visualize  # ensure this is in your directory
 from collections import Counter
 
+
+level = 1
 node_names = {
     -1: "height_0",
     -2: "height_1",
@@ -85,12 +87,12 @@ def place_piece(board, shape, col, piece):
     else:
         row = BOARD_HEIGHT - shape.shape[0]
     if row < 0:
-        return -1
+        return -1, -1
     for r in range(shape.shape[0]):
         for c in range(shape.shape[1]):
             if shape[r][c]:
                 board[row + r][col + c] = piece
-    return clear_lines(board)
+    return clear_lines(board), row
 
 def clear_lines(board):
     full_rows = np.where(np.all(board != 0, axis=1))[0]
@@ -117,7 +119,7 @@ def get_best_move(board, piece, net):
         for col in range(BOARD_WIDTH - shape.shape[1] + 1):
             test_board = board.copy()
             if not check_collision(test_board, shape, 0, col):
-                success = place_piece(test_board, shape, col, piece)
+                success, row = place_piece(test_board, shape, col, piece)
                 if success == -1:
                     continue
                 features = get_features(test_board)
@@ -143,6 +145,7 @@ def draw_stats(screen, font, score, steps, total_lines):
     lines = [
         f"Score: {score}",
         f"Pieces: {steps}",
+        f"Level: {sum(k * v for k, v in total_lines.items())//10 + 1}",
         f"Lines: {sum(k * v for k, v in total_lines.items())}",
         "Breakdown:" 
     ] + [f"{k}L: {v}" for k, v in sorted(total_lines.items())]
@@ -165,17 +168,25 @@ def visualize_game(net, delay=100, max_steps=math.inf):
     running = True
 
     while running:
+        level = sum(k * v for k, v in total_lines.items())//10 + 1
         piece = bag.next()
         action = get_best_move(board, piece, net)
         if action is None:
             break
         shape, col = action
-        success = place_piece(board, shape, col, piece)
+        success, row = place_piece(board, shape, col, piece)
         if success == -1:
             break
         lines = success
-        score += 1
-        score += pow(lines, 4) * 10
+        score += (BOARD_HEIGHT-row)*2
+        if (success == 1):
+            success += 100*level
+        elif (success == 2):
+            success += 300*level
+        elif (success == 3):
+            success += 500*level
+        elif (success == 4):
+            success += 800*level
         if lines != 0:
             total_lines[lines] += 1
         steps += 1
@@ -210,4 +221,4 @@ if __name__ == "__main__":
     visualize.draw_net(config, genome, view=True, node_names=node_names)
 
     for i in range(5):
-        visualize_game(net, delay=0)
+        visualize_game(net, delay=10)
