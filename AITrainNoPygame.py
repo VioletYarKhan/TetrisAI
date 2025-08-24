@@ -198,6 +198,8 @@ def run_neat(config_path, gens):
     config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
                          neat.DefaultSpeciesSet, neat.DefaultStagnation,
                          config_path)
+    with open("best_tetris_genome.pkl", "rb") as f:
+        genome = pickle.load(f)
     p = neat.Population(config)
     p.add_reporter(neat.StdOutReporter(True))
     p.add_reporter(neat.StatisticsReporter())

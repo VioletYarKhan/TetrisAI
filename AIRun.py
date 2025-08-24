@@ -209,7 +209,7 @@ def visualize_game(net, delay=100, max_steps=math.inf):
     pygame.quit()
 
 if __name__ == "__main__":
-    with open("best_tetris_genome.pkl", "rb") as f:
+    with open("curr_tetris_genome.pkl", "rb") as f:
         genome = pickle.load(f)
 
     config_path = os.path.join(os.path.dirname(__file__), "neat-config.txt")
