@@ -286,7 +286,11 @@ def draw_stats(screen, font, score, steps, total_lines, current_piece, next_piec
         "",
         "Breakdown:"
     ] + [f"{k}L: {v}" for k, v in sorted(total_lines.items())]
-
+    
+    try:
+        lines.append(f"% Lines Tetris: {(total_lines[4]*4/sum(k * v for k, v in total_lines.items()))*100:.2f}%")
+    except:
+        lines.append(f"% Lines Tetris: 0%")
     for i, line in enumerate(lines):
         text = font.render(line, True, WHITE)
         screen.blit(text, (base_x, 20 + i * 22))
@@ -426,4 +430,4 @@ if __name__ == "__main__":
 
     # Run a few visualized games
     for i in range(5):
-        visualize_game(net, delay=500, max_steps=1000)
+        visualize_game(net, delay=5, max_steps=math.inf)
