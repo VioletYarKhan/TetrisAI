@@ -233,8 +233,9 @@ def play_game(net, max_steps=5000):
             success = place_piece(board, action['rotation'], action['col'], placed_piece)
             if success == -1:
                 break
-            score += 1
-            score += pow(success, 4) * 10
+            score += 0.1
+            if (success > 1):
+            	score += pow(success, 5)
             # move to next piece from queue
             current = next_piece
             next_piece = bag.next()
@@ -285,7 +286,8 @@ def eval_genome(args):
     return genome_id, genome
 
 def eval_genomes(genomes, config):
-    cpus = max(1, cpu_count()//6)
+    cpus = max(1, cpu_count()//2)
+
     with Pool(cpus) as pool:
         args = [(genome_id, genome, config) for genome_id, genome in genomes]
         results = pool.map(eval_genome, args)
@@ -330,7 +332,7 @@ def save_genome(genome):
 
 if __name__ == "__main__":
     sys.stdout.flush()
-    print(f"Starting... CPUS: {cpu_count()//6} / {cpu_count()}", flush=True)
+    print(f"Starting... CPUS: {cpu_count()//2} / {cpu_count()}", flush=True)
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, "neat-config.txt")
     run_neat(config_path, 1000)

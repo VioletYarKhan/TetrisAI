@@ -400,7 +400,7 @@ def visualize_game(net, delay=100, max_steps=math.inf):
         if steps > max_steps:
             running = False
 
-    print(f"\n🎮 Game Over! Final score: {score} Steps: {steps} Lines: {total_lines}")
+    print(f"\nGame Over! Final score: {score} Steps: {steps} Lines: {total_lines}")
     pygame.quit()
 
 # ---------------------------
@@ -426,4 +426,4 @@ if __name__ == "__main__":
 
     # Run a few visualized games
     for i in range(5):
-        visualize_game(net, delay=100, max_steps=1000)
+        visualize_game(net, delay=500, max_steps=1000)

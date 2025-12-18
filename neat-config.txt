@@ -1,7 +1,8 @@
 [NEAT]
 fitness_criterion     = mean
 fitness_threshold     = inf
-pop_size              = 48
+no_fitness_termination = False
+pop_size              = 30
 reset_on_extinction   = True
 
 [DefaultGenome]
@@ -10,6 +11,13 @@ num_outputs             = 1
 num_hidden              = 5
 initial_connection      = partial_nodirect 1.0
 feed_forward            = True
+structural_mutation_surer = default
+bias_init_type = gaussian
+response_init_type = gaussian
+single_structural_mutation = false
+weight_init_type = gaussian
+enabled_rate_to_true_add = 0.0
+enabled_rate_to_false_add = 0.0
 
 activation_default      = sigmoid
 activation_options      = sigmoid tanh
@@ -56,7 +64,7 @@ weight_mutate_rate      = 0.8
 weight_replace_rate     = 0.1
 
 [DefaultSpeciesSet]
-compatibility_threshold = 3.5
+compatibility_threshold = 4.0
 
 [DefaultStagnation]
 species_fitness_func  = mean
@@ -65,4 +73,5 @@ species_elitism       = 1
 
 [DefaultReproduction]
 elitism               = 0
+min_species_size = 1
 survival_threshold    = 0.15
